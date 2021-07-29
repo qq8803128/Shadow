@@ -33,6 +33,7 @@ import com.tencent.shadow.core.runtime.container.DelegateProvider.LOADER_VERSION
 import com.tencent.shadow.core.runtime.container.DelegateProvider.PROCESS_ID_KEY
 import com.tencent.shadow.core.runtime.container.DelegateProviderHolder
 import com.tencent.shadow.core.runtime.container.GeneratedHostActivityDelegator
+import com.tencent.shadow.core.loader.util.AdapterPackage
 
 /**
  * 插件组件管理
@@ -217,6 +218,10 @@ abstract class ComponentManager : PluginComponentLauncher {
      */
     private fun Intent.toActivityContainerIntent(): Intent {
         val bundleForPluginLoader = Bundle()
+
+        //fix package custom packagename
+        AdapterPackage.fixPluginComponentName(this,pluginComponentInfoMap)
+
         val pluginComponentInfo = pluginComponentInfoMap[component]!!
         bundleForPluginLoader.putParcelable(CM_ACTIVITY_INFO_KEY, pluginComponentInfo)
         return toContainerIntent(bundleForPluginLoader)
