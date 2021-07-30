@@ -107,6 +107,8 @@ def sourceJar(String name, String path) {
 }
 
 def publicationVersion = project.ARTIFACT_VERSION
+def codingGroupId = 'com.tencent.shadow.coding'
+def codingPath = 'projects/sdk/coding'
 def coreGroupId = 'com.tencent.shadow.core'
 def corePath = 'projects/sdk/core'
 def dynamicGroupId = 'com.tencent.shadow.dynamic'
@@ -114,6 +116,25 @@ def dynamicPath = 'projects/sdk/dynamic'
 
 publishing {
     publications {
+        pakckageGenerator(MavenPublication) {
+            groupId codingGroupId
+            artifactId 'package-generator'
+            version publicationVersion
+
+            artifact("$codingPath/package-generator/build/libs/package-generator.jar")
+            artifact sourceJar("pakckageGenerator", "$codingPath/package-generator")
+
+            pom.withXml {
+                def root = asNode()
+                def dependencies = root.appendNode('dependencies')
+                dependencies.append(getDependencyNode('compile', 'com.android.tools.build', 'gradle', build_gradle_version))
+                dependencies.append(getDependencyNode('compile', 'net.lingala.zip4j', 'zip4j', '1.3.2'))
+
+                def scm = root.appendNode('scm')
+                setScm(scm)
+            }
+        }
+
         gradlePlugin(MavenPublication) {
             groupId coreGroupId
             artifactId 'gradle-plugin'
