@@ -1,0 +1,24 @@
+
+apply plugin: 'java-gradle-plugin'
+
+apply plugin: 'java-library'
+apply plugin: 'groovy'
+
+gradlePlugin {
+    plugins {
+        jarjar {
+            id = "com.tencent.shadow.jarjar"
+            implementationClass = "com.tencent.shadow.jarjar.JarJarPlugin"
+        }
+    }
+}
+
+dependencies {
+    implementation "com.android.tools.build:gradle:3.6.0"
+    api 'net.lingala.zip4j:zip4j:1.3.2'
+}
+
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
