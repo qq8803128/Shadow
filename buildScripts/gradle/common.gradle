@@ -29,7 +29,7 @@ allprojects {
         //ext.VERSION_SUFFIX = "-${gitShortRev()}-SNAPSHOT"
     }
 
-    ext.VERSION_NAME = "2.1.2"
+    ext.VERSION_NAME = "2.1.5"
     ext.VERSION_SUFFIX = ""
     ext.ARTIFACT_VERSION = ext.VERSION_NAME + ext.VERSION_SUFFIX
     ext.TEST_HOST_APP_APPLICATION_ID = 'com.tencent.shadow.test.hostapp'
