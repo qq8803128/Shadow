@@ -22,7 +22,8 @@ import javassist.ClassPool
 import javassist.CtClass
 
 abstract class AbstractTransformManager(ctClassInputMap: Map<CtClass, InputClass>,
-                                        private val classPool: ClassPool
+                                        private val classPool: ClassPool,
+                                        private val disableTransformClasses: Array<String>,
 ) {
     private val allInputClass = ctClassInputMap.keys
 
@@ -31,15 +32,21 @@ abstract class AbstractTransformManager(ctClassInputMap: Map<CtClass, InputClass
     fun setupAll() {
         mTransformList.forEach {
             it.mClassPool = classPool
-            it.setup(allInputClass)
+            it.setup(allInputClass.fillDisableTransformClasses())
         }
     }
 
     fun fireAll() {
         mTransformList.flatMap { it.list }.forEach { transform ->
-            transform.filter(allInputClass).forEach {
+            transform.filter(allInputClass.fillDisableTransformClasses()).forEach {
                 transform.transform(it)
             }
         }
+    }
+
+    fun Set<CtClass>.fillDisableTransformClasses(): Set<CtClass> {
+        return this.filter {
+            it.name !in disableTransformClasses
+        }.toSet()
     }
 }

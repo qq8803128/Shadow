@@ -48,6 +48,7 @@ class ChangeApkContextWrapper extends ContextWrapper {
     private Resources createResources(String apkPath, Context base) {
         PackageManager packageManager = base.getPackageManager();
         PackageInfo packageArchiveInfo = packageManager.getPackageArchiveInfo(apkPath, GET_META_DATA);
+
         packageArchiveInfo.applicationInfo.publicSourceDir = apkPath;
         packageArchiveInfo.applicationInfo.sourceDir = apkPath;
         try {

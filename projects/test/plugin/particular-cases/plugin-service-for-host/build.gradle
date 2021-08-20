@@ -44,4 +44,12 @@ buildscript {
     }
 }
 
+ext.shadow_plugin_info = true
+
 apply plugin: 'com.tencent.shadow.plugin'
+
+shadow{
+    plugin{
+
+    }
+}
