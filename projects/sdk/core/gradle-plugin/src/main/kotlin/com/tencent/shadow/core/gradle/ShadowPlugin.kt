@@ -40,7 +40,6 @@ import kotlin.reflect.full.declaredFunctions
 import kotlin.reflect.jvm.isAccessible
 
 class ShadowPlugin : Plugin<Project> {
-
     override fun apply(project: Project) {
         System.err.println("ShadowPlugin project.name==" + project.name)
 
@@ -55,12 +54,6 @@ class ShadowPlugin : Plugin<Project> {
         val classPoolBuilder = AndroidClassPoolBuilder(project, contextClassLoader, androidJar)
 
         val shadowExtension = project.extensions.create("shadow", ShadowExtension::class.java)
-
-
-
-        mergeShadowPluginConfigAssetsTask(project, shadowExtension.pluginInfoConfig)
-
-
         if (!project.hasProperty("disable_shadow_transform")) {
             baseExtension.registerTransform(ShadowTransform(
                     project,
@@ -69,6 +62,15 @@ class ShadowPlugin : Plugin<Project> {
                     { shadowExtension.transformConfig.disableTransformClasses }
             ))
         }
+
+        project.tasks.create("createShadowPropsAssetsTask"){
+            it.group = "plugin"
+            System.err.println("type->" + shadowExtension.pluginInfo.type)
+            System.err.println("partKey->" + shadowExtension.pluginInfo.partKey)
+            System.err.println("businessName->" + shadowExtension.pluginInfo.businessName)
+            System.err.println("hostWhiteList->" + shadowExtension.pluginInfo.hostWhiteList.asList().toString())
+            System.err.println("dependsOn->" + shadowExtension.pluginInfo.dependsOn.asList().toString())
+        }.outputs.upToDateWhen{false}
 
         /*
         project.extensions.create("packagePlugin", PackagePluginExtension::class.java, project)
@@ -97,13 +99,16 @@ class ShadowPlugin : Plugin<Project> {
 
     open class ShadowExtension {
         var transformConfig = TransformConfig()
-        var pluginInfoConfig = PluginInfo()
+        var pluginInfo = PluginInfo()
+
         fun transform(action: Action<in TransformConfig>) {
+
             action.execute(transformConfig)
         }
 
         fun plugin(action: Action<in PluginInfo>) {
-            action.execute(pluginInfoConfig)
+            println("111->"+ action.toString())
+            action.execute(pluginInfo)
         }
     }
 
@@ -128,26 +133,6 @@ class ShadowPlugin : Plugin<Project> {
             return method.call(plugin) as BaseExtension
         } else {
             return project.extensions.getByName("android") as BaseExtension
-        }
-    }
-
-    fun mergeShadowPluginConfigAssetsTask(project: Project, pluginInfo: PluginInfo) {
-        if (!pluginInfo.canWrite()){
-            return
-        }
-
-        project.extensions[AppExtension::class].run {
-            applicationVariants.all {
-                var mergeAssetsTask = it.mergeAssetsProvider.get()
-                val task = project.tasks.create("copy${it.name}ShadowPropsTask", Copy::class.java, {
-                    mergeAssetsTask.outputDir.get().asFile.mkdirs()
-                    writeShadowPropsFile(File(mergeAssetsTask.outputDir.get().asFile,"shadow.properties"),pluginInfo)
-                })
-                task.outputs.upToDateWhen { false }
-
-                it.mergeAssetsProvider.get().dependsOn(task)
-
-            }
         }
     }
 
@@ -190,18 +175,19 @@ class ShadowPlugin : Plugin<Project> {
         var typeArray = arrayOf("runtime","manager","loader","plugin")
 
         type = type.toLowerCase()
+        println(type)
         if (!typeArray.contains(type)){
-            println("shadow config file the key type is error!")
+            System.err.println("shadow config file the key type is error!")
             return false
         }
         if (type == "plugin"){
             if (partKey.length <= 0){
-                println("shadow config file the key partKey is null!")
+                System.err.println("shadow config file the key partKey is null!")
                 return false
             }
 
             if (businessName.length <= 0){
-                println("shadow config file the key businessName is null!")
+                System.err.println("shadow config file the key businessName is null!")
                 return false
             }
         }

@@ -30,6 +30,7 @@ abstract class AbstractTransformManager(ctClassInputMap: Map<CtClass, InputClass
     abstract val mTransformList: List<SpecificTransform>
 
     fun setupAll() {
+        System.err.println("class->" + disableTransformClasses.asList().toString())
         mTransformList.forEach {
             it.mClassPool = classPool
             it.setup(allInputClass.fillDisableTransformClasses())
