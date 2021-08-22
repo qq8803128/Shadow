@@ -26,6 +26,8 @@ import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.view.LayoutInflater;
 
+import java.io.File;
+
 import static android.content.pm.PackageManager.GET_META_DATA;
 
 /**
@@ -48,6 +50,9 @@ class ChangeApkContextWrapper extends ContextWrapper {
     private Resources createResources(String apkPath, Context base) {
         PackageManager packageManager = base.getPackageManager();
         PackageInfo packageArchiveInfo = packageManager.getPackageArchiveInfo(apkPath, GET_META_DATA);
+        if (packageArchiveInfo == null){
+            throw new RuntimeException("获取插件"+ new File(apkPath).getName() + "信息失败,"+ "原因可能是插件targetSdkVersion过高，可以通过降低targetSdkVersion版本或者在插件androidManifest文件中添加一个application节点解决。");
+        }
         packageArchiveInfo.applicationInfo.publicSourceDir = apkPath;
         packageArchiveInfo.applicationInfo.sourceDir = apkPath;
         try {
