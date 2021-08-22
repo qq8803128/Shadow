@@ -64,6 +64,7 @@ shadow {
 //        useHostContext = ['abc']
     }
 
+    /*
     packagePlugin {
         pluginTypes {
             debug {
@@ -124,4 +125,6 @@ shadow {
         compactVersion = [1, 2, 3]
         uuidNickName = "1.1.5"
     }
+
+     */
 }

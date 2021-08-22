@@ -18,8 +18,10 @@
 
 package com.tencent.shadow.core.gradle
 
+import com.android.build.gradle.AppExtension
 import com.android.build.gradle.AppPlugin
 import com.android.build.gradle.BaseExtension
+import com.android.build.gradle.tasks.MergeSourceSetFolders
 import com.tencent.shadow.core.gradle.extensions.PackagePluginExtension
 import com.tencent.shadow.core.transform.ShadowTransform
 import com.tencent.shadow.core.transform_kit.AndroidClassPoolBuilder
@@ -28,12 +30,16 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.plugins.BasePlugin
+import org.gradle.api.plugins.ExtensionContainer
+import org.gradle.api.tasks.Copy
 import java.io.File
+import java.io.FileWriter
+import java.lang.RuntimeException
+import kotlin.reflect.KClass
 import kotlin.reflect.full.declaredFunctions
 import kotlin.reflect.jvm.isAccessible
 
 class ShadowPlugin : Plugin<Project> {
-
     override fun apply(project: Project) {
         System.err.println("ShadowPlugin project.name==" + project.name)
 
@@ -52,10 +58,21 @@ class ShadowPlugin : Plugin<Project> {
             baseExtension.registerTransform(ShadowTransform(
                     project,
                     classPoolBuilder,
-                    { shadowExtension.transformConfig.useHostContext }
+                    { shadowExtension.transformConfig.useHostContext },
+                    { shadowExtension.transformConfig.disableTransformClasses }
             ))
         }
 
+        project.tasks.create("createShadowPropsAssetsTask"){
+            it.group = "plugin"
+            System.err.println("type->" + shadowExtension.pluginInfo.type)
+            System.err.println("partKey->" + shadowExtension.pluginInfo.partKey)
+            System.err.println("businessName->" + shadowExtension.pluginInfo.businessName)
+            System.err.println("hostWhiteList->" + shadowExtension.pluginInfo.hostWhiteList.asList().toString())
+            System.err.println("dependsOn->" + shadowExtension.pluginInfo.dependsOn.asList().toString())
+        }.outputs.upToDateWhen{false}
+
+        /*
         project.extensions.create("packagePlugin", PackagePluginExtension::class.java, project)
 
         project.afterEvaluate {
@@ -76,17 +93,36 @@ class ShadowPlugin : Plugin<Project> {
                 }.dependsOn(tasks)
             }
         }
+
+         */
     }
 
     open class ShadowExtension {
         var transformConfig = TransformConfig()
+        var pluginInfo = PluginInfo()
+
         fun transform(action: Action<in TransformConfig>) {
+
             action.execute(transformConfig)
         }
+
+        fun plugin(action: Action<in PluginInfo>) {
+            println("111->"+ action.toString())
+            action.execute(pluginInfo)
+        }
+    }
+
+    class PluginInfo {
+        var type: String = ""
+        var partKey: String = ""
+        var businessName: String = ""
+        var hostWhiteList: Array<String> = emptyArray()
+        var dependsOn: Array<String> = emptyArray()
     }
 
     class TransformConfig {
         var useHostContext: Array<String> = emptyArray()
+        var disableTransformClasses: Array<String> = emptyArray()
     }
 
     fun getBaseExtension(project: Project): BaseExtension {
@@ -100,4 +136,62 @@ class ShadowPlugin : Plugin<Project> {
         }
     }
 
+    private fun writeShadowPropsFile(file: File, pluginInfo: PluginInfo) {
+        var fileWrite = FileWriter(file)
+        var content = "# Shadow Plugin Config File\n" +
+                "# the settings of the plugin type(type=loader,runtime,manager,plugin)\n" +
+                "type=${pluginInfo.type}\n\n" +
+                "# part key name\n" +
+                "partKey=${pluginInfo.partKey}\n\n" +
+                "# business name\n" +
+                "businessName=${pluginInfo.businessName}\n\n" +
+                "# the plugin can use host class list(only type = plugin)\n# hostWhiteList=package1;package2\n" +
+                "hostWhiteList=${pluginInfo.hostWhiteList.newString()}\n\n" +
+                "# the plugin depends on other plugin part key name list(only type = plugin)\n# dependsOn=partKey1;partKey2\n" +
+                "dependsOn=${pluginInfo.dependsOn.newString()}"
+        fileWrite.write(content)
+        fileWrite.flush()
+        fileWrite.close()
+    }
+
+    private operator fun <T : Any> ExtensionContainer.get(type: KClass<T>): T {
+        return getByType(type.java)!!
+    }
+
+    private fun Array<String>.newString(): String {
+        var content = ""
+        forEach {
+            var end = if (it == get(size - 1)) {
+                ""
+            } else {
+                ";"
+            }
+            content += (it + end)
+        }
+        return content
+    }
+
+    public fun PluginInfo.canWrite(): Boolean{
+        var typeArray = arrayOf("runtime","manager","loader","plugin")
+
+        type = type.toLowerCase()
+        println(type)
+        if (!typeArray.contains(type)){
+            System.err.println("shadow config file the key type is error!")
+            return false
+        }
+        if (type == "plugin"){
+            if (partKey.length <= 0){
+                System.err.println("shadow config file the key partKey is null!")
+                return false
+            }
+
+            if (businessName.length <= 0){
+                System.err.println("shadow config file the key businessName is null!")
+                return false
+            }
+        }
+
+        return true
+    }
 }

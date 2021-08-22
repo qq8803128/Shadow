@@ -9,6 +9,8 @@ import android.os.RemoteException;
 
 @SuppressWarnings("NullableProblems")
 public class SystemExitService extends Service {
+
+
     @Override
     public IBinder onBind(Intent intent) {
         return new Binder() {

@@ -44,4 +44,16 @@ buildscript {
     }
 }
 
+
 apply plugin: 'com.tencent.shadow.plugin'
+
+shadow{
+    transform{
+    }
+
+    plugin{
+        type='manager'
+        partKey='service.plugin'
+        dependsOn = ['1','2']
+    }
+}
