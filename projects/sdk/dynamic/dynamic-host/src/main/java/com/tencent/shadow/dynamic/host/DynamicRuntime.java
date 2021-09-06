@@ -119,7 +119,7 @@ public class DynamicRuntime {
 
     private static void hackParentToRuntime(InstalledApk installedRuntimeApk, ClassLoader contextClassLoader) throws Exception {
         RuntimeClassLoader runtimeClassLoader = new RuntimeClassLoader(installedRuntimeApk.apkFilePath, installedRuntimeApk.oDexPath,
-                installedRuntimeApk.libraryPath, contextClassLoader.getParent());
+                installedRuntimeApk.libraryPath, contextClassLoader.getParent(),contextClassLoader);
         hackParentClassLoader(contextClassLoader, runtimeClassLoader);
     }
 
@@ -229,11 +229,16 @@ public class DynamicRuntime {
          * 加载的apk路径
          */
         private String apkPath;
+        private ClassLoader hostClassLoader;
 
-
-        RuntimeClassLoader(String dexPath, String optimizedDirectory, String librarySearchPath, ClassLoader parent) {
+        RuntimeClassLoader(String dexPath, String optimizedDirectory, String librarySearchPath, ClassLoader parent,ClassLoader hostClassLoader) {
             super(dexPath, optimizedDirectory == null ? null : new File(optimizedDirectory), librarySearchPath, parent);
             this.apkPath = dexPath;
+            this.hostClassLoader = hostClassLoader;
+        }
+
+        public ClassLoader getHostClassLoader(){
+            return hostClassLoader;
         }
     }
 }

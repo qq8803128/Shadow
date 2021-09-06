@@ -49,6 +49,18 @@ public class DelegateProviderHolder {
     }
 
     public static DelegateProvider getDelegateProvider(String key) {
+        if (isEmpty(key) && delegateProviderMap.size() == 1){
+            for (String keySet : delegateProviderMap.keySet()){
+                return delegateProviderMap.get(keySet);
+            }
+        }
         return delegateProviderMap.get(key);
+    }
+
+    private static boolean isEmpty(String text){
+        if (text == null || text.length() == 0){
+            return true;
+        }
+        return false;
     }
 }

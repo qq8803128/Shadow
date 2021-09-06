@@ -36,9 +36,6 @@ import kotlin.reflect.full.declaredFunctions
 import kotlin.reflect.jvm.isAccessible
 
 class ShadowPlugin : Plugin<Project> {
-    companion object{
-        val mergeAssetsOutput: ArrayList<String> = ArrayList()
-    }
     override fun apply(project: Project) {
         System.err.println("ShadowPlugin project.name==" + project.name)
 
@@ -73,10 +70,6 @@ class ShadowPlugin : Plugin<Project> {
 
         project.extensions[AppExtension::class].run {
             applicationVariants.all {
-                val file = it.mergeAssetsProvider.get().outputDir.asFile.get()
-                if (!mergeAssetsOutput.contains(file.absolutePath)){
-                    mergeAssetsOutput.add(file.absolutePath)
-                }
                 it.mergeAssetsProvider.get().dependsOn(task)
             }
         }
@@ -143,7 +136,10 @@ class ShadowPlugin : Plugin<Project> {
                     "# the plugin can use host class list(only type = plugin)\n# hostWhiteList=package1;package2\n" +
                     "hostWhiteList=${pluginInfo.hostWhiteList.newString()}\n\n" +
                     "# the plugin depends on other plugin part key name list(only type = plugin)\n# dependsOn=partKey1;partKey2\n" +
-                    "dependsOn=${pluginInfo.dependsOn.newString()}"
+                    "dependsOn=${pluginInfo.dependsOn.newString()}\n\n" +
+                    "# extra datas\n" +
+                    "extra=${pluginInfo.extra}"
+
             fileWrite.write(content)
             fileWrite.flush()
             fileWrite.close()
@@ -193,6 +189,7 @@ class ShadowPlugin : Plugin<Project> {
         var businessName: String = ""
         var hostWhiteList: Array<String> = emptyArray()
         var dependsOn: Array<String> = emptyArray()
+        var extra: String = ""
     }
 
     class TransformConfig {
