@@ -27,6 +27,7 @@ abstract class AbstractTransformManager(ctClassInputMap: Map<CtClass, InputClass
                                         private val disableTransformClasses: Array<String>,
 ) {
     private val allInputClass = ctClassInputMap.keys
+    private lateinit var filterInputClass: Set<CtClass>
 
     abstract val mTransformList: List<SpecificTransform>
 
@@ -35,22 +36,33 @@ abstract class AbstractTransformManager(ctClassInputMap: Map<CtClass, InputClass
     fun setupAll() {
         mTransformList.forEach {
             it.mClassPool = classPool
-            mLogList.clear()
-            it.setup(allInputClass.fillDisableTransformClasses())
-            if (mLogList.size > 0) {
-                System.err.println("class->" + disableTransformClasses.asList().toString())
-                System.err.println("--------------disable transform--------------")
-                System.err.println(mLogList.toString())
-            }
+            filterInputClass = allInputClass.wrapper()
+            it.setup(filterInputClass)
+
         }
     }
 
     fun fireAll() {
         mTransformList.flatMap { it.list }.forEach { transform ->
-            transform.filter(allInputClass.fillDisableTransformClasses()).forEach {
+            transform.filter(filterInputClass).forEach {
                 transform.transform(it)
             }
         }
+    }
+
+    fun Set<CtClass>.wrapper():Set<CtClass>{
+        val classes = fillDisableTransformClasses()
+        return this.filter {
+            it.name !in classes.toStringArray()
+        }.toSet()
+    }
+
+    fun Set<CtClass>.toStringArray(): Array<String>{
+        val list = ArrayList<String>()
+        forEach {
+            list.add(it.name)
+        }
+        return list.toTypedArray()
     }
 
     fun Set<CtClass>.fillDisableTransformClasses(): Set<CtClass> {
