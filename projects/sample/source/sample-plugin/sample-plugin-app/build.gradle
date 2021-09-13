@@ -61,6 +61,11 @@ apply plugin: 'com.tencent.shadow.plugin'
 
 shadow {
     transform {
+        disableTransformClasses = [
+            'com.tencent.shadow.sample.plugin.app.lib.test.TestClass',
+            'com.tencent.shadow.sample.plugin.app.lib.test.one.*',
+            'com.tencent.shadow.sample.plugin.app.lib.test.all.**'
+        ]
 //        useHostContext = ['abc']
     }
 

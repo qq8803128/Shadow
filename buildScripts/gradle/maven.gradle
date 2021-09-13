@@ -1,7 +1,7 @@
 task buildSdk() {
     dependsOn gradle.includedBuild('core').task(':gradle-plugin:assemble')
     dependsOn gradle.includedBuild('core').task(':common:jarReleasePackage')
-    dependsOn gradle.includedBuild('core').task(':loader:assembleRelease')
+    dependsOn gradle.includedBuild('core').task(':loader:assembleDebug')
     dependsOn gradle.includedBuild('core').task(':manager:assembleRelease')
     dependsOn gradle.includedBuild('core').task(':runtime:jarReleasePackage')
     dependsOn gradle.includedBuild('core').task(':activity-container:jarReleasePackage')
@@ -188,7 +188,7 @@ publishing {
             groupId coreGroupId
             artifactId 'loader'
             version publicationVersion
-            artifact("$corePath/loader/build/outputs/aar/loader-release.aar")
+            artifact("$corePath/loader/build/outputs/aar/loader-debug.aar")
             artifact sourceJar("loader", "$corePath/loader")
 
             pom.withXml {

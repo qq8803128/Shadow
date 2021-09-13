@@ -31,7 +31,6 @@ abstract class AbstractTransformManager(ctClassInputMap: Map<CtClass, InputClass
 
     abstract val mTransformList: List<SpecificTransform>
 
-    private var mLogList: LogList = LogList()
 
     fun setupAll() {
         mTransformList.forEach {
@@ -68,9 +67,6 @@ abstract class AbstractTransformManager(ctClassInputMap: Map<CtClass, InputClass
     fun Set<CtClass>.fillDisableTransformClasses(): Set<CtClass> {
         return this.filter {
             var result = it.name !in disableTransformClasses
-            if (!result){
-                mLogList.add("${it.name} class disable transform in classes")
-            }
             result
         }.toSet().fillDisableTransformOneChildPackage().toSet().fillDisableTransformAllChildPackage().toSet()
     }
@@ -81,9 +77,6 @@ abstract class AbstractTransformManager(ctClassInputMap: Map<CtClass, InputClass
     fun Set<CtClass>.fillDisableTransformOneChildPackage(): Set<CtClass> {
         return this.filter {
             var result = it.packageName !in disableTransformClasses.getOneChildPackage()
-            if (!result){
-                mLogList.add("${it.name} class disable transform in package[${it.packageName}.*]")
-            }
             result
         }.toSet()
     }
@@ -97,7 +90,6 @@ abstract class AbstractTransformManager(ctClassInputMap: Map<CtClass, InputClass
             var result = false
             disableTransformClasses.getAllChildPackage().forEach {
                 if (packageName.startsWith(it)){
-                    mLogList.add("${ctClass.name} class disable transform in package[${it}.**]")
                     result = true
                     return@forEach
                 }
